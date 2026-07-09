@@ -28,7 +28,7 @@ Production: [selam-english-amharic.vercel.app](https://selam-english-amharic.ver
 
 ## Local Development
 
-Requirements: Node.js 20 or newer.
+Requirements: Node.js 24.
 
 ```bash
 npm install
