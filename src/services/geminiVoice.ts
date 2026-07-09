@@ -19,6 +19,7 @@ export type VoiceTurn = {
 export type VoiceCoachCallbacks = {
   onStatus: (status: VoiceStatus, message: string) => void;
   onTurn: (turn: VoiceTurn) => void;
+  onTranscript: (turn: VoiceTurn | null) => void;
   onLevel: (level: number) => void;
 };
 
@@ -31,22 +32,50 @@ export type VoicePracticeContext = {
 };
 
 export function buildGeminiSystemInstruction(context: VoicePracticeContext) {
+  const currentTarget = getStepText(context.lesson, context.step);
   return [
-    "You are Selam English, a warm and concise voice coach for an adult Amharic speaker learning practical English.",
-    "Use clear Amharic for explanations. Use English for the sentence being practiced.",
-    "Ask one short question at a time and wait for the learner to answer.",
-    "Keep each response under 45 words. Do not give speeches or lists.",
+    "You are Selam English, a concise voice coach for an adult Amharic speaker.",
+    `This session is locked to the topic \"${context.lesson.topic}\" and the exact target \"${currentTarget}\".`,
+    `The scenario is: ${context.lesson.conversationPrompt}`,
+    "Use clear Amharic for instruction and feedback. Use English only for the lesson target or a question that directly practices this scenario.",
+    "Do not introduce shopping, groceries, travel, or any unrelated example unless it is the stated lesson topic.",
+    "Keep Amharic and English as separate, complete sentences with normal spacing and punctuation.",
+    "Ask one question, then wait. Keep each response under 35 words.",
     "Correct only the most useful pronunciation or grammar issue in each turn.",
     "When correcting pronunciation, give a simple mouth or tongue instruction in Amharic, then model the English word once.",
-    "Praise specific improvement without exaggeration.",
+    "Follow this lesson sequence and do not skip or restart stages:",
+    `1. MODEL: Give one brief Amharic instruction, say exactly \"${currentTarget}\" once, and ask the learner to repeat it. Use no other English sentence.`,
+    `2. REPEAT: Evaluate the learner's attempt. Give one correction in Amharic if needed, model \"${currentTarget}\" once, and ask for one final repetition.`,
+    `3. USE IT: Ask one simple role-play question tied to \"${context.lesson.topic}\" that the learner can answer with \"${currentTarget}\".`,
+    "4. CONVERSATION: Continue the same role-play for at most two short exchanges, then give one specific Amharic completion message.",
+    "Never ask the learner to repeat a new random phrase. Never replace the current target with another sentence.",
     `Learner: ${context.learnerName || "Learner"}. Level: ${context.learnerLevel}.`,
     `Target word: ${context.lesson.word}. Target phrase: ${context.lesson.phrase}.`,
     `Target short sentence: ${context.lesson.shortSentence}`,
     `Target long sentence: ${context.lesson.longSentence}`,
-    `Current stage: ${context.step}. Scenario: ${context.lesson.conversationPrompt}`,
+    `Current stage: ${context.step}. Current exact target: ${currentTarget}.`,
     `Review words when natural: ${context.reviewWords.slice(0, 4).join(", ") || "none"}.`,
-    "Begin in Amharic with one brief instruction, then invite the learner to say the current English target."
+    "Start at MODEL now."
   ].join("\n");
+}
+
+export function appendTranscriptChunk(existing: string, chunk: string) {
+  if (!chunk) return existing;
+  if (!existing) return chunk;
+  if (chunk.startsWith(existing)) return chunk;
+  if (existing.endsWith(chunk)) return existing;
+  if (/^\s/.test(chunk) || /\s$/.test(existing)) return existing + chunk;
+  if (/^[,.;:!?…’”)}\]]/.test(chunk)) return existing + chunk;
+  if (/[([{“‘\"]$/.test(existing)) return existing + chunk;
+  return `${existing} ${chunk}`;
+}
+
+export function normalizeTranscript(text: string) {
+  return text
+    .replace(/\s+([,.;:!?…])/g, "$1")
+    .replace(/([([{“‘\"])\s+/g, "$1")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 export class GeminiVoiceCoach {
@@ -134,7 +163,7 @@ export class GeminiVoiceCoach {
     }
     await this.startMicrophoneStream();
     this.session.sendClientContent({
-      turns: "Start the practice now with one short Amharic instruction, then say the English target once.",
+      turns: `Start MODEL now. Say the exact English target \"${getStepText(context.lesson, context.step)}\" once, then wait for the learner.`,
       turnComplete: true
     });
   }
@@ -156,6 +185,7 @@ export class GeminiVoiceCoach {
     this.inputContext = null;
     this.outputContext = null;
     this.callbacks.onLevel(0);
+    this.callbacks.onTranscript(null);
     this.callbacks.onStatus("idle", "Voice coach ready.");
   }
 
@@ -190,15 +220,25 @@ export class GeminiVoiceCoach {
 
     if (content.interrupted) this.stopOutput();
 
-    const inputText = content.inputTranscription?.text?.trim();
+    const inputText = content.inputTranscription?.text;
     if (inputText) {
-      this.learnerText += inputText;
+      this.learnerText = appendTranscriptChunk(this.learnerText, inputText);
+      this.callbacks.onTranscript({
+        id: "live-learner",
+        speaker: "learner",
+        text: normalizeTranscript(this.learnerText)
+      });
       this.callbacks.onStatus("thinking", "Gemini is listening to your answer…");
     }
 
-    const outputText = content.outputTranscription?.text?.trim();
+    const outputText = content.outputTranscription?.text;
     if (outputText) {
-      this.coachText += outputText;
+      this.coachText = appendTranscriptChunk(this.coachText, outputText);
+      this.callbacks.onTranscript({
+        id: "live-coach",
+        speaker: "coach",
+        text: normalizeTranscript(this.coachText)
+      });
       this.callbacks.onStatus("speaking", "Gemini is responding.");
     }
 
@@ -210,13 +250,14 @@ export class GeminiVoiceCoach {
 
     if (content.turnComplete) {
       if (this.learnerText.trim()) {
-        this.callbacks.onTurn({ id: crypto.randomUUID(), speaker: "learner", text: this.learnerText.trim() });
+        this.callbacks.onTurn({ id: crypto.randomUUID(), speaker: "learner", text: normalizeTranscript(this.learnerText) });
       }
       if (this.coachText.trim()) {
-        this.callbacks.onTurn({ id: crypto.randomUUID(), speaker: "coach", text: this.coachText.trim() });
+        this.callbacks.onTurn({ id: crypto.randomUUID(), speaker: "coach", text: normalizeTranscript(this.coachText) });
       }
       this.learnerText = "";
       this.coachText = "";
+      this.callbacks.onTranscript(null);
       this.callbacks.onStatus("listening", "Your turn. Speak when you are ready.");
     }
   }
@@ -281,6 +322,13 @@ export function speakText(text: string, rate = 0.72) {
   if (voice) utterance.voice = voice;
   window.speechSynthesis.speak(utterance);
   return true;
+}
+
+function getStepText(lesson: SpeakingLesson, step: SpeakingStep) {
+  if (step === "word") return lesson.word;
+  if (step === "phrase") return lesson.phrase;
+  if (step === "short") return lesson.shortSentence;
+  return lesson.longSentence;
 }
 
 function rootMeanSquare(buffer: Float32Array) {

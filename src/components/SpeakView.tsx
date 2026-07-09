@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { visualImages } from "../data/curriculum";
+import { englishToAmharicPronunciation } from "../services/amharicPronunciation";
 import {
   GeminiVoiceCoach,
   speakText,
@@ -55,18 +56,34 @@ export function SpeakView({
   const [voiceMessage, setVoiceMessage] = useState("Ready for a short conversation.");
   const [voiceLevel, setVoiceLevel] = useState(0);
   const [turns, setTurns] = useState<VoiceTurn[]>([]);
+  const [liveTurn, setLiveTurn] = useState<VoiceTurn | null>(null);
   const coachRef = useRef<GeminiVoiceCoach | null>(null);
+  const readerRef = useRef<HTMLDivElement | null>(null);
   const currentIndex = steps.findIndex((item) => item.id === step);
   const currentText = getStepText(lesson, step);
+  const targetPronunciation = englishToAmharicPronunciation(currentText);
   const isVoiceActive = ["connecting", "listening", "thinking", "speaking"].includes(voiceStatus);
+  const coachTurnCount = turns.filter((turn) => turn.speaker === "coach").length;
+  const learnerTurnCount = turns.filter((turn) => turn.speaker === "learner").length;
+  const voicePhase = coachTurnCount === 0 ? 0 : learnerTurnCount === 0 ? 1 : learnerTurnCount === 1 ? 2 : 3;
 
   useEffect(() => {
     setStep("word");
     setFurthestStep(0);
+  }, [lesson.id]);
+
+  useEffect(() => {
     setTurns([]);
+    setLiveTurn(null);
     coachRef.current?.stop();
     coachRef.current = null;
-  }, [lesson.id]);
+  }, [lesson.id, step]);
+
+  useEffect(() => {
+    const reader = readerRef.current;
+    if (!reader) return;
+    reader.scrollTo({ top: reader.scrollHeight, behavior: "smooth" });
+  }, [turns, liveTurn?.text]);
 
   useEffect(() => () => coachRef.current?.stop(), []);
 
@@ -105,6 +122,7 @@ export function SpeakView({
         setVoiceMessage(message);
       },
       onTurn: (turn) => setTurns((existing) => [...existing, turn]),
+      onTranscript: setLiveTurn,
       onLevel: setVoiceLevel
     });
     coachRef.current = coach;
@@ -175,6 +193,22 @@ export function SpeakView({
 
           <div className={`voice-coach ${voiceStatus}`}>
             <div className="coach-title"><span><Headphones size={20} /></span><div><strong>Gemini voice coach</strong><small>{voiceMessage}</small></div><i className="connection-dot" /></div>
+            <ol className="conversation-stages" aria-label="Voice lesson sequence">
+              {["Listen", "Repeat", "Use it", "Conversation"].map((label, index) => (
+                <li key={label} className={index === voicePhase ? "active" : index < voicePhase ? "done" : ""}>
+                  <span>{index < voicePhase ? <Check size={12} /> : index + 1}</span>{label}
+                </li>
+              ))}
+            </ol>
+            <div className="voice-reader" ref={readerRef} aria-live="polite" aria-label="Live voice transcript">
+              <div className="voice-target-line">
+                <span>Current practice</span>
+                <strong lang="en">{currentText}</strong>
+                <small lang="am">{targetPronunciation}</small>
+              </div>
+              {turns.slice(-8).map((turn) => <TranscriptLine key={turn.id} turn={turn} active={false} />)}
+              {liveTurn ? <TranscriptLine key={liveTurn.id} turn={liveTurn} active /> : null}
+            </div>
             <div className="waveform" aria-hidden="true">
               {bars.map((height, index) => <i key={index} style={{ height: `${Math.max(height * (voiceLevel || 0.32), 3)}px` }} />)}
             </div>
@@ -185,11 +219,6 @@ export function SpeakView({
               </button>
               <button className="square-icon-button" onClick={() => speakText(currentText, 1)} aria-label="Replay at normal speed" title="Replay at normal speed"><RotateCcw size={20} /></button>
             </div>
-            {turns.length > 0 ? (
-              <div className="transcript" aria-live="polite">
-                {turns.slice(-4).map((turn) => <p key={turn.id} className={turn.speaker}><strong>{turn.speaker === "coach" ? "Coach" : "You"}</strong>{turn.text}</p>)}
-              </div>
-            ) : null}
           </div>
 
           <button className="primary-button continue-button" onClick={continueLesson}>
@@ -216,4 +245,33 @@ function getStepText(lesson: SpeakingLesson, step: SpeakingStep) {
   if (step === "phrase") return lesson.phrase;
   if (step === "short") return lesson.shortSentence;
   return lesson.longSentence;
+}
+
+function TranscriptLine({ turn, active }: { turn: VoiceTurn; active: boolean }) {
+  const pronunciation = englishToAmharicPronunciation(turn.text);
+  return (
+    <article className={`voice-reader-line ${turn.speaker} ${active ? "active" : ""}`}>
+      <span>{turn.speaker === "coach" ? "Coach" : "You"}</span>
+      <p lang={/[A-Za-z]/.test(turn.text) ? "en" : "am"}>
+        <HighlightedWords text={turn.text} active={active} />
+      </p>
+      {pronunciation ? <small lang="am">{pronunciation}</small> : null}
+    </article>
+  );
+}
+
+function HighlightedWords({ text, active }: { text: string; active: boolean }) {
+  const tokens = text.split(/(\s+)/);
+  let currentIndex = -1;
+  for (let index = tokens.length - 1; index >= 0; index -= 1) {
+    if (/\S/.test(tokens[index])) {
+      currentIndex = index;
+      break;
+    }
+  }
+  return tokens.map((token, index) => (
+    <span key={`${index}-${token}`} className={active && index === currentIndex ? "current-word" : undefined}>
+      {token}
+    </span>
+  ));
 }
