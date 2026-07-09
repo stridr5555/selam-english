@@ -15,14 +15,14 @@ import type { LearningProgress, ViewId } from "../types/learning";
 const primaryNav: Array<{
   id: Exclude<ViewId, "settings">;
   label: string;
-  amharic: string;
+  description: string;
   icon: typeof CalendarDays;
 }> = [
-  { id: "today", label: "Today", amharic: "ዛሬ", icon: CalendarDays },
-  { id: "speak", label: "Speak", amharic: "መናገር", icon: Mic2 },
-  { id: "read", label: "Read", amharic: "ማንበብ", icon: BookOpen },
-  { id: "review", label: "Review", amharic: "ክለሳ", icon: RotateCcw },
-  { id: "progress", label: "Progress", amharic: "እድገት", icon: BarChart3 }
+  { id: "today", label: "ዛሬ", description: "የዕለት እቅድ", icon: CalendarDays },
+  { id: "speak", label: "መናገር", description: "የድምፅ ልምምድ", icon: Mic2 },
+  { id: "read", label: "ማንበብ", description: "የንባብ ግንዛቤ", icon: BookOpen },
+  { id: "review", label: "ክለሳ", description: "የቃላት ድግግሞሽ", icon: RotateCcw },
+  { id: "progress", label: "እድገት", description: "የትምህርት ውጤት", icon: BarChart3 }
 ];
 
 export function AppShell({
@@ -36,15 +36,15 @@ export function AppShell({
   view: ViewId;
   onNavigate: (view: ViewId) => void;
 }) {
-  const learnerName = progress.profile.name || "Learner";
+  const learnerName = progress.profile.name || "ተማሪ";
   const progressPercent = Math.min(100, (progress.learnedWords.length / 5000) * 100);
 
   return (
     <div className="app-frame">
-      <aside className="desktop-sidebar" aria-label="Main navigation">
-        <button className="brand" onClick={() => onNavigate("today")} aria-label="Selam English home">
+      <aside className="desktop-sidebar" aria-label="ዋና መምረጫ">
+        <button className="brand" onClick={() => onNavigate("today")} aria-label="ወደ ሰላም እንግሊዝኛ መነሻ">
           <span className="brand-symbol"><Volume2 size={20} /></span>
-          <span><strong>Selam English</strong><small>ሰላም እንግሊዝኛ</small></span>
+          <span><strong>ሰላም እንግሊዝኛ</strong><small>በአማርኛ ይማሩ</small></span>
         </button>
 
         <nav className="side-nav">
@@ -56,23 +56,23 @@ export function AppShell({
               aria-current={view === item.id ? "page" : undefined}
             >
               <item.icon size={20} />
-              <span><strong>{item.label}</strong><small>{item.amharic}</small></span>
+              <span><strong>{item.label}</strong><small>{item.description}</small></span>
             </button>
           ))}
         </nav>
 
         <div className="sidebar-progress">
-          <div><span>Speaking words</span><strong>{progress.learnedWords.length.toLocaleString()} / 5,000</strong></div>
-          <div className="meter" aria-label={`${progressPercent.toFixed(1)} percent of speaking vocabulary complete`}>
+          <div><span>የተማሩ የመናገር ቃላት</span><strong>{progress.learnedWords.length.toLocaleString()} / 5,000</strong></div>
+          <div className="meter" aria-label={`ከመናገር ቃላት ${progressPercent.toFixed(1)} በመቶ ተጠናቋል`}>
             <span style={{ width: `${Math.max(1, progressPercent)}%` }} />
           </div>
         </div>
 
         <div className="sidebar-footer">
           <button onClick={() => onNavigate("settings")} className={view === "settings" ? "active" : ""}>
-            <Settings size={19} /> Settings
+            <Settings size={19} /> ቅንብሮች
           </button>
-          <a href="mailto:support@selamenglish.app"><HelpCircle size={19} /> Help</a>
+          <a href="mailto:support@selamenglish.app"><HelpCircle size={19} /> እገዛ</a>
         </div>
       </aside>
 
@@ -83,16 +83,16 @@ export function AppShell({
             <span>{getHeaderSubtitle(view)}</span>
           </div>
           <div className="header-actions">
-            <div className="streak"><Flame size={21} /><strong>{progress.streakCount}</strong><span>day streak</span></div>
-            <button className="avatar-button" onClick={() => onNavigate("settings")} aria-label="Open profile settings">
-              {(learnerName[0] || "L").toUpperCase()}
+            <div className="streak"><Flame size={21} /><strong>{progress.streakCount}</strong><span>ቀን ተከታታይ</span></div>
+            <button className="avatar-button" onClick={() => onNavigate("settings")} aria-label="የመገለጫ ቅንብሮችን ክፈት">
+              {(learnerName[0] || "ተ").toUpperCase()}
             </button>
           </div>
         </header>
         <main className="content" id="main-content">{children}</main>
       </div>
 
-      <nav className="mobile-nav" aria-label="Main navigation">
+      <nav className="mobile-nav" aria-label="ዋና መምረጫ">
         {primaryNav.map((item) => (
           <button
             key={item.id}
@@ -109,10 +109,10 @@ export function AppShell({
   );
 }
 function getHeaderSubtitle(view: ViewId) {
-  if (view === "today") return "Your daily English plan";
-  if (view === "speak") return "Speaking fluency";
-  if (view === "read") return "Reading comprehension";
-  if (view === "review") return "Remember what you learned";
-  if (view === "progress") return "Your learning record";
-  return "Learning preferences";
+  if (view === "today") return "የዕለት የእንግሊዝኛ እቅድዎ";
+  if (view === "speak") return "የመናገር ብቃት";
+  if (view === "read") return "የንባብ ግንዛቤ";
+  if (view === "review") return "የተማሩትን ያስታውሱ";
+  if (view === "progress") return "የትምህርት መዝገብዎ";
+  return "የትምህርት ምርጫዎች";
 }

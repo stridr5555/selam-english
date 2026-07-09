@@ -12,19 +12,20 @@ import {
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { visualImages } from "../data/curriculum";
 import { englishToAmharicPronunciation } from "../services/amharicPronunciation";
+import { topicLabel } from "../services/amharicUi";
+import { speakText } from "../services/edgeTts";
 import {
   GeminiVoiceCoach,
-  speakText,
   type VoiceStatus,
   type VoiceTurn
 } from "../services/geminiVoice";
 import type { LearnerProfile, SpeakingLesson, SpeakingStep } from "../types/learning";
 
 const steps: Array<{ id: SpeakingStep; label: string; shortLabel: string }> = [
-  { id: "word", label: "Word", shortLabel: "Word" },
-  { id: "phrase", label: "Phrase", shortLabel: "Phrase" },
-  { id: "short", label: "Short sentence", shortLabel: "Short" },
-  { id: "long", label: "Long sentence", shortLabel: "Long" }
+  { id: "word", label: "ቃል", shortLabel: "ቃል" },
+  { id: "phrase", label: "ሐረግ", shortLabel: "ሐረግ" },
+  { id: "short", label: "አጭር ዓረፍተ ነገር", shortLabel: "አጭር" },
+  { id: "long", label: "ረጅም ዓረፍተ ነገር", shortLabel: "ረጅም" }
 ];
 
 type LessonTab = "meaning" | "grammar" | "pronunciation";
@@ -53,7 +54,7 @@ export function SpeakView({
   const [tab, setTab] = useState<LessonTab>("meaning");
   const [search, setSearch] = useState("");
   const [voiceStatus, setVoiceStatus] = useState<VoiceStatus>("idle");
-  const [voiceMessage, setVoiceMessage] = useState("Ready for a short conversation.");
+  const [voiceMessage, setVoiceMessage] = useState("ለአጭር ውይይት ዝግጁ ነው።");
   const [voiceLevel, setVoiceLevel] = useState(0);
   const [turns, setTurns] = useState<VoiceTurn[]>([]);
   const [liveTurn, setLiveTurn] = useState<VoiceTurn | null>(null);
@@ -137,7 +138,7 @@ export function SpeakView({
     } catch (error) {
       if (coachRef.current !== coach) return;
       setVoiceStatus("error");
-      setVoiceMessage(error instanceof Error ? error.message : "Voice practice could not start.");
+      setVoiceMessage(error instanceof Error ? error.message : "የድምፅ ልምምዱን መጀመር አልተቻለም።");
       coach.stop();
       coachRef.current = null;
     }
@@ -153,27 +154,27 @@ export function SpeakView({
   return (
     <div className="speak-view">
       <section className="page-heading compact-heading">
-        <div><h1>Speaking lesson</h1><p>ቃሉን ይማሩ፣ ያዳምጡ፣ ይናገሩ እና በውይይት ይጠቀሙበት።</p></div>
+        <div><h1>የመናገር ትምህርት</h1><p>ቃሉን ይማሩ፣ ያዳምጡ፣ ይናገሩ እና በውይይት ይጠቀሙበት።</p></div>
         <form className="word-search" onSubmit={submitSearch}>
           <Search size={18} />
-          <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Find a word in the 5,000" aria-label="Find a word in the speaking curriculum" />
-          <button aria-label="Search word" disabled={loadingLesson}>{loadingLesson ? <LoaderCircle className="spin" size={18} /> : <ArrowRight size={18} />}</button>
+          <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="ከ5,000 ቃላት ውስጥ ይፈልጉ" aria-label="ከመናገር ትምህርቱ ቃል ይፈልጉ" />
+          <button aria-label="ቃል ፈልግ" disabled={loadingLesson}>{loadingLesson ? <LoaderCircle className="spin" size={18} /> : <ArrowRight size={18} />}</button>
         </form>
       </section>
 
       <div className="speaking-layout">
         <section className="vocabulary-panel">
-          <div className="vocabulary-image"><img src={visualImages[lesson.visual]} alt={`Visual context for ${lesson.word}`} /><span>{lesson.topic}</span></div>
+          <div className="vocabulary-image"><img src={visualImages[lesson.visual]} alt={`የ${lesson.word} ምስላዊ ማብራሪያ`} /><span>{topicLabel(lesson.topic)}</span></div>
           <div className="vocabulary-copy">
-            <p>Word {lesson.rank} of 5,000</p>
+            <p>ከ5,000 ቃላት ውስጥ ቃል {lesson.rank}</p>
             <h2>{lesson.word}</h2>
-            <div className="ipa-row"><span>{lesson.ipa || "Listen for the pronunciation"}</span><button className="icon-text-button" onClick={() => speakText(lesson.word, profile.voiceRate)}><Volume2 size={19} /> Slow</button></div>
+            <div className="ipa-row"><span>{lesson.ipa || "አነጋገሩን ያዳምጡ"}</span><button className="icon-text-button" onClick={() => speakText(lesson.word, profile.voiceRate)}><Volume2 size={19} /> ቀስ ብሎ</button></div>
             <strong lang="am">{lesson.amharic}</strong>
             <small>{lesson.transliteration}</small>
           </div>
         </section>
 
-        <section className="lesson-steps" aria-label="Speaking lesson stages">
+        <section className="lesson-steps" aria-label="የመናገር ትምህርት ደረጃዎች">
           {steps.map((item, index) => {
             const unlocked = completed || index <= furthestStep + 1;
             const passed = index < currentIndex || completed;
@@ -187,22 +188,22 @@ export function SpeakView({
 
         <section className="practice-panel" aria-labelledby="practice-heading">
           <div className="practice-header">
-            <div><p>Listen and repeat</p><h2 id="practice-heading">{currentText}</h2></div>
-            <button className="replay-button" onClick={() => speakText(currentText, profile.voiceRate)}><Volume2 size={20} /><span>Play slowly</span></button>
+            <div><p>ያዳምጡና ይድገሙ</p><h2 id="practice-heading">{currentText}</h2></div>
+            <button className="replay-button" onClick={() => speakText(currentText, profile.voiceRate)}><Volume2 size={20} /><span>ቀስ ብሎ አጫውት</span></button>
           </div>
 
           <div className={`voice-coach ${voiceStatus}`}>
-            <div className="coach-title"><span><Headphones size={20} /></span><div><strong>Gemini voice coach</strong><small>{voiceMessage}</small></div><i className="connection-dot" /></div>
-            <ol className="conversation-stages" aria-label="Voice lesson sequence">
-              {["Listen", "Repeat", "Use it", "Conversation"].map((label, index) => (
+            <div className="coach-title"><span><Headphones size={20} /></span><div><strong>ጄሚኒ የድምፅ አሰልጣኝ</strong><small>{voiceMessage}</small></div><i className="connection-dot" /></div>
+            <ol className="conversation-stages" aria-label="የድምፅ ትምህርት ቅደም ተከተል">
+              {["ያዳምጡ", "ይድገሙ", "ይጠቀሙ", "ይወያዩ"].map((label, index) => (
                 <li key={label} className={index === voicePhase ? "active" : index < voicePhase ? "done" : ""}>
                   <span>{index < voicePhase ? <Check size={12} /> : index + 1}</span>{label}
                 </li>
               ))}
             </ol>
-            <div className="voice-reader" ref={readerRef} aria-live="polite" aria-label="Live voice transcript">
+            <div className="voice-reader" ref={readerRef} aria-live="polite" aria-label="ቀጥታ የድምፅ ጽሑፍ">
               <div className="voice-target-line">
-                <span>Current practice</span>
+                <span>አሁን የሚለማመዱት</span>
                 <strong lang="en">{currentText}</strong>
                 <small lang="am">{targetPronunciation}</small>
               </div>
@@ -215,20 +216,20 @@ export function SpeakView({
             <div className="voice-actions">
               <button className={`voice-button ${isVoiceActive ? "stop" : ""}`} onClick={toggleVoice}>
                 {voiceStatus === "connecting" ? <LoaderCircle className="spin" size={22} /> : isVoiceActive ? <CircleStop size={22} /> : <Mic2 size={22} />}
-                {voiceStatus === "connecting" ? "Cancel connection" : isVoiceActive ? "End practice" : "Speak with Gemini"}
+                {voiceStatus === "connecting" ? "ግንኙነቱን ሰርዝ" : isVoiceActive ? "ልምምዱን ጨርስ" : "ከጄሚኒ ጋር ይናገሩ"}
               </button>
-              <button className="square-icon-button" onClick={() => speakText(currentText, 1)} aria-label="Replay at normal speed" title="Replay at normal speed"><RotateCcw size={20} /></button>
+              <button className="square-icon-button" onClick={() => speakText(currentText, 1)} aria-label="በመደበኛ ፍጥነት እንደገና አጫውት" title="በመደበኛ ፍጥነት እንደገና አጫውት"><RotateCcw size={20} /></button>
             </div>
           </div>
 
           <button className="primary-button continue-button" onClick={continueLesson}>
-            {currentIndex < 3 ? "Continue" : completed ? "Next word" : "Complete lesson"}<ArrowRight size={18} />
+            {currentIndex < 3 ? "ቀጥል" : completed ? "ቀጣይ ቃል" : "ትምህርቱን ጨርስ"}<ArrowRight size={18} />
           </button>
         </section>
 
         <aside className="lesson-notes">
-          <div className="note-tabs" role="tablist" aria-label="Lesson explanation">
-            {(["meaning", "grammar", "pronunciation"] as LessonTab[]).map((item) => <button key={item} role="tab" aria-selected={tab === item} className={tab === item ? "active" : ""} onClick={() => setTab(item)}>{item === "meaning" ? "Meaning" : item === "grammar" ? "Grammar" : "Pronunciation"}</button>)}
+          <div className="note-tabs" role="tablist" aria-label="የትምህርት ማብራሪያ">
+            {(["meaning", "grammar", "pronunciation"] as LessonTab[]).map((item) => <button key={item} role="tab" aria-selected={tab === item} className={tab === item ? "active" : ""} onClick={() => setTab(item)}>{item === "meaning" ? "ትርጉም" : item === "grammar" ? "ሰዋሰው" : "አነጋገር"}</button>)}
           </div>
           <div className="note-content" lang="am">
             <h2>{tab === "meaning" ? "ትርጉም" : tab === "grammar" ? "ሰዋሰው" : "አነጋገር"}</h2>
@@ -251,7 +252,7 @@ function TranscriptLine({ turn, active }: { turn: VoiceTurn; active: boolean }) 
   const pronunciation = englishToAmharicPronunciation(turn.text);
   return (
     <article className={`voice-reader-line ${turn.speaker} ${active ? "active" : ""}`}>
-      <span>{turn.speaker === "coach" ? "Coach" : "You"}</span>
+      <span>{turn.speaker === "coach" ? "አሰልጣኝ" : "እርስዎ"}</span>
       <p lang={/[A-Za-z]/.test(turn.text) ? "en" : "am"}>
         <HighlightedWords text={turn.text} active={active} />
       </p>

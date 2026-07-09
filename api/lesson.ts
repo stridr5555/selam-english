@@ -26,7 +26,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
   try {
     body = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
   } catch {
-    res.status(400).json({ error: "Invalid JSON body." });
+    res.status(400).json({ error: "የተላከው መረጃ ትክክል አይደለም።" });
     return;
   }
   const requestBody = body as Record<string, unknown> | undefined;
@@ -34,17 +34,17 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
   const rank = Number(requestBody?.rank);
   const level = requestBody?.level;
   if (!/^[a-z]{1,18}$/.test(word) || !Number.isInteger(rank) || rank < 1 || rank > 5000) {
-    res.status(400).json({ error: "Invalid lesson request." });
+    res.status(400).json({ error: "የትምህርት ጥያቄው ትክክል አይደለም።" });
     return;
   }
   if (typeof level !== "string" || !["beginner", "intermediate", "advanced"].includes(level)) {
-    res.status(400).json({ error: "Invalid learner level." });
+    res.status(400).json({ error: "የተማሪው ደረጃ ትክክል አይደለም።" });
     return;
   }
 
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
-    res.status(503).json({ error: "Lesson generation is not configured." });
+    res.status(503).json({ error: "ትምህርት ማዘጋጀት አልተዋቀረም።" });
     return;
   }
 
@@ -56,6 +56,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
         "Create one practical spoken-English micro-lesson for an adult Amharic speaker.",
         `Target word: ${word}. Frequency rank in this curriculum: ${rank}. Learner level: ${level}.`,
         "Use natural modern Amharic. Keep English examples useful in daily life.",
+        "Return the topic field in natural Amharic. Keep the conversationPrompt in English for the voice coach.",
         "The phrase must contain the target word. Build the short and long sentence gradually from that phrase.",
         "Choose the closest visual category from the allowed enum. Return only the requested JSON."
       ].join("\n"),
@@ -92,7 +93,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     });
   } catch (error) {
     console.error("Lesson generation failed", error);
-    res.status(502).json({ error: "This lesson could not be prepared." });
+    res.status(502).json({ error: "ይህን ትምህርት ማዘጋጀት አልተቻለም።" });
   }
 }
 

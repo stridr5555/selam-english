@@ -9,8 +9,9 @@ import {
   Volume2
 } from "lucide-react";
 import { visualImages } from "../data/curriculum";
+import { minutesLabel, topicLabel } from "../services/amharicUi";
 import type { LearningProgress, ReadingLesson, SpeakingLesson, ViewId } from "../types/learning";
-import { speakText } from "../services/geminiVoice";
+import { speakText } from "../services/edgeTts";
 
 export function TodayView({
   progress,
@@ -32,55 +33,55 @@ export function TodayView({
     <div className="today-view">
       <section className="page-heading">
         <div>
-          <h1>Today’s plan</h1>
+          <h1>የዛሬ እቅድ</h1>
           <p>ዛሬ በትንሽ ጊዜ መናገርን፣ ማንበብን እና ክለሳን ይለማመዱ።</p>
         </div>
         <div className="daily-goal">
-          <span>{doneCount} of 3 complete</span>
+          <span>ከ3 ውስጥ {doneCount} ተጠናቋል</span>
           <div className="meter"><i style={{ width: `${(doneCount / 3) * 100}%` }} /></div>
         </div>
       </section>
 
       <div className="today-grid">
-        <aside className="plan-rail" aria-label="Today's activities">
-          <h2>Daily plan</h2>
-          <PlanItem icon={Mic2} title="Speaking lesson" meta="6 min" done={speakingDone} active={!speakingDone} onClick={() => onNavigate("speak")} />
-          <PlanItem icon={BookOpen} title="Reading" meta={`${reading.minutes} min`} done={readingDone} active={speakingDone && !readingDone} onClick={() => onNavigate("read")} />
-          <PlanItem icon={RotateCcw} title="Quick review" meta={`${Math.max(1, progress.reviewQueue.length)} words`} done={reviewDone} active={speakingDone && readingDone} onClick={() => onNavigate("review")} />
-          <div className="goal-note"><Clock3 size={18} /><span><strong>{progress.profile.dailyGoalMinutes} minute goal</strong><small>Short practice counts.</small></span></div>
+        <aside className="plan-rail" aria-label="የዛሬ ተግባራት">
+          <h2>የዕለት እቅድ</h2>
+          <PlanItem icon={Mic2} title="የመናገር ትምህርት" meta="6 ደቂቃ" done={speakingDone} active={!speakingDone} onClick={() => onNavigate("speak")} />
+          <PlanItem icon={BookOpen} title="ንባብ" meta={minutesLabel(reading.minutes)} done={readingDone} active={speakingDone && !readingDone} onClick={() => onNavigate("read")} />
+          <PlanItem icon={RotateCcw} title="ፈጣን ክለሳ" meta={`${Math.max(1, progress.reviewQueue.length)} ቃላት`} done={reviewDone} active={speakingDone && readingDone} onClick={() => onNavigate("review")} />
+          <div className="goal-note"><Clock3 size={18} /><span><strong>የ{progress.profile.dailyGoalMinutes} ደቂቃ ግብ</strong><small>አጭር ልምምድም ይቆጠራል።</small></span></div>
         </aside>
 
         <section className="daily-lesson" aria-labelledby="daily-word">
           <div className="section-title-row">
-            <div><p>Speaking lesson · {lesson.topic}</p><h2 id="daily-word">Learn one useful word</h2></div>
-            <span className="rank-label">Word {lesson.rank} of 5,000</span>
+            <div><p>የመናገር ትምህርት · {topicLabel(lesson.topic)}</p><h2 id="daily-word">አንድ ጠቃሚ ቃል ይማሩ</h2></div>
+            <span className="rank-label">ከ5,000 ቃላት ውስጥ {lesson.rank}</span>
           </div>
           <div className="lesson-preview">
-            <img src={visualImages[lesson.visual]} alt={`Visual context for ${lesson.word}`} />
+            <img src={visualImages[lesson.visual]} alt={`የ${lesson.word} ምስላዊ ማብራሪያ`} />
             <div className="preview-word">
-              <p>Today’s word</p>
+              <p>የዛሬ ቃል</p>
               <h3>{lesson.word}</h3>
-              <div className="pronunciation-line"><span>{lesson.ipa}</span><button className="icon-text-button" onClick={() => speakText(lesson.word, progress.profile.voiceRate)}><Volume2 size={18} /> Slow</button></div>
+              <div className="pronunciation-line"><span>{lesson.ipa}</span><button className="icon-text-button" onClick={() => speakText(lesson.word, progress.profile.voiceRate)}><Volume2 size={18} /> ቀስ ብሎ</button></div>
               <strong lang="am">{lesson.amharic}</strong>
               <small>{lesson.transliteration}</small>
             </div>
           </div>
-          <div className="progression-strip" aria-label="Lesson progression">
-            {["Word", "Phrase", "Short sentence", "Long sentence"].map((item, index) => (
+          <div className="progression-strip" aria-label="የትምህርት እድገት">
+            {["ቃል", "ሐረግ", "አጭር ዓረፍተ ነገር", "ረጅም ዓረፍተ ነገር"].map((item, index) => (
               <span key={item} className={index === 0 ? "active" : ""}><i>{index + 1}</i>{item}</span>
             ))}
           </div>
           <div className="lesson-cta">
-            <span><Headphones size={20} /> Listen, repeat, then use the word with Gemini.</span>
-            <button className="primary-button" onClick={() => onNavigate("speak")}>{speakingDone ? "Practice again" : "Start speaking"}<ArrowRight size={18} /></button>
+            <span><Headphones size={20} /> ያዳምጡ፣ ይድገሙ፣ ከዚያም ቃሉን ከጄሚኒ ጋር ይጠቀሙ።</span>
+            <button className="primary-button" onClick={() => onNavigate("speak")}>{speakingDone ? "እንደገና ይለማመዱ" : "መናገር ይጀምሩ"}<ArrowRight size={18} /></button>
           </div>
         </section>
       </div>
 
       <section className="reading-preview-band">
-        <img src={visualImages[reading.visual]} alt="Reading lesson setting" />
-        <div><p>Reading comprehension · {reading.minutes} min</p><h2>{reading.title}</h2><span lang="am">{reading.titleAmharic}</span></div>
-        <button className="secondary-button" onClick={() => onNavigate("read")}>Open reading <ArrowRight size={18} /></button>
+        <img src={visualImages[reading.visual]} alt="የንባብ ትምህርት ሁኔታ" />
+        <div><p>የንባብ ግንዛቤ · {minutesLabel(reading.minutes)}</p><h2>{reading.title}</h2><span lang="am">{reading.titleAmharic}</span></div>
+        <button className="secondary-button" onClick={() => onNavigate("read")}>ንባቡን ክፈት <ArrowRight size={18} /></button>
       </section>
     </div>
   );
@@ -103,7 +104,7 @@ function PlanItem({
   return (
     <button className={`plan-item ${active ? "active" : ""}`} onClick={onClick}>
       <span className="plan-icon">{done ? <Check size={18} /> : <Icon size={19} />}</span>
-      <span><strong>{title}</strong><small>{done ? "Complete" : meta}</small></span>
+      <span><strong>{title}</strong><small>{done ? "ተጠናቋል" : meta}</small></span>
       <ArrowRight size={17} />
     </button>
   );

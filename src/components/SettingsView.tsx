@@ -1,6 +1,6 @@
 import { Bell, BellOff, Download, RotateCcw, Save, ShieldCheck, Volume2 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { speakText } from "../services/geminiVoice";
+import { speakText } from "../services/edgeTts";
 import { formatTime } from "../services/notifications";
 import type { LearnerProfile, Level } from "../types/learning";
 
@@ -53,48 +53,48 @@ export function SettingsView({
   }
 
   function reset() {
-    if (window.confirm("Delete your local Selam English progress and start again?")) onReset();
+    if (window.confirm("በዚህ መሣሪያ ላይ ያለውን የሰላም እንግሊዝኛ እድገት ሰርዘው እንደገና ይጀምሩ?")) onReset();
   }
 
   return (
     <div className="settings-view">
-      <section className="page-heading compact-heading"><div><h1>Settings</h1><p>የትምህርት ደረጃዎን፣ የዕለት ግብዎን እና ማስታወሻዎን ያስተካክሉ።</p></div></section>
+      <section className="page-heading compact-heading"><div><h1>ቅንብሮች</h1><p>የትምህርት ደረጃዎን፣ የዕለት ግብዎን እና ማስታወሻዎን ያስተካክሉ።</p></div></section>
       <div className="settings-layout">
         <section className="settings-section">
-          <div className="settings-section-title"><h2>Learning profile</h2><p>Lessons and Gemini practice use these preferences.</p></div>
+          <div className="settings-section-title"><h2>የትምህርት መገለጫ</h2><p>ትምህርቶችና የጄሚኒ ልምምድ እነዚህን ምርጫዎች ይጠቀማሉ።</p></div>
           <div className="settings-fields">
-            <label><span>Name</span><input value={draft.name} onChange={(event) => setDraft({ ...draft, name: event.target.value })} /></label>
-            <label><span>English level</span><select value={draft.level} onChange={(event) => setDraft({ ...draft, level: event.target.value as Level })}><option value="beginner">Beginner</option><option value="intermediate">Intermediate</option><option value="advanced">Advanced</option></select></label>
-            <label><span>Daily goal</span><select value={draft.dailyGoalMinutes} onChange={(event) => setDraft({ ...draft, dailyGoalMinutes: Number(event.target.value) })}><option value={10}>10 minutes</option><option value={15}>15 minutes</option><option value={20}>20 minutes</option><option value={30}>30 minutes</option></select></label>
+            <label><span>ስም</span><input value={draft.name} onChange={(event) => setDraft({ ...draft, name: event.target.value })} /></label>
+            <label><span>የእንግሊዝኛ ደረጃ</span><select value={draft.level} onChange={(event) => setDraft({ ...draft, level: event.target.value as Level })}><option value="beginner">ጀማሪ</option><option value="intermediate">መካከለኛ</option><option value="advanced">ከፍተኛ</option></select></label>
+            <label><span>የዕለት ግብ</span><select value={draft.dailyGoalMinutes} onChange={(event) => setDraft({ ...draft, dailyGoalMinutes: Number(event.target.value) })}><option value={10}>10 ደቂቃ</option><option value={15}>15 ደቂቃ</option><option value={20}>20 ደቂቃ</option><option value={30}>30 ደቂቃ</option></select></label>
           </div>
-          <button className="primary-button" onClick={save}><Save size={18} />{saved ? "Saved" : "Save profile"}</button>
+          <button className="primary-button" onClick={save}><Save size={18} />{saved ? "ተቀምጧል" : "መገለጫውን አስቀምጥ"}</button>
         </section>
 
         <section className="settings-section">
-          <div className="settings-section-title"><h2>Pronunciation audio</h2><p>Choose how slowly example words and sentences play.</p></div>
-          <div className="range-field"><label htmlFor="voice-rate"><Volume2 size={20} />Playback speed</label><input id="voice-rate" type="range" min="0.55" max="1" step="0.05" value={draft.voiceRate} onChange={(event) => setDraft({ ...draft, voiceRate: Number(event.target.value) })} /><output>{draft.voiceRate < 0.68 ? "Very slow" : draft.voiceRate < 0.85 ? "Slow" : "Natural"}</output></div>
-          <button className="secondary-button" onClick={() => speakText("I am practicing English every day.", draft.voiceRate)}>Test audio <Volume2 size={18} /></button>
+          <div className="settings-section-title"><h2>የአነጋገር ድምፅ</h2><p>ጥራት ያለው የማይክሮሶፍት ኤጅ ነርቭ ድምፅ የምሳሌ ቃላትንና ዓረፍተ ነገሮችን ያነባል። ፍጥነቱን ይምረጡ።</p></div>
+          <div className="range-field"><label htmlFor="voice-rate"><Volume2 size={20} />የማጫወት ፍጥነት</label><input id="voice-rate" type="range" min="0.55" max="1" step="0.05" value={draft.voiceRate} onChange={(event) => setDraft({ ...draft, voiceRate: Number(event.target.value) })} /><output>{draft.voiceRate < 0.68 ? "በጣም ቀስ" : draft.voiceRate < 0.85 ? "ቀስ" : "ተፈጥሯዊ"}</output></div>
+          <button className="secondary-button" onClick={() => speakText("I am practicing English every day.", draft.voiceRate)}>ድምፁን ፈትሽ <Volume2 size={18} /></button>
         </section>
 
         <section className="settings-section">
-          <div className="settings-section-title"><h2>Daily reminder</h2><p>Native Android and iPhone builds schedule a local notification. The installed web app reminds you while it can run.</p></div>
-          <div className="reminder-control"><label><span>Reminder time</span><input type="time" value={draft.reminderTime} onChange={(event) => setDraft({ ...draft, reminderTime: event.target.value })} /></label><span>{formatTime(draft.reminderTime)}</span></div>
+          <div className="settings-section-title"><h2>የዕለት ማስታወሻ</h2><p>የአንድሮይድና የአይፎን መተግበሪያዎች በመሣሪያው ላይ ማሳወቂያ ያስይዛሉ። የተጫነው የድር መተግበሪያም ሲሠራ ያስታውስዎታል።</p></div>
+          <div className="reminder-control"><label><span>የማስታወሻ ሰዓት</span><input type="time" value={draft.reminderTime} onChange={(event) => setDraft({ ...draft, reminderTime: event.target.value })} /></label><span>{formatTime(draft.reminderTime)}</span></div>
           <p className="setting-status" role="status">{reminderMessage}</p>
-          <div className="button-row"><button className="primary-button" onClick={() => onSetReminder(draft.reminderTime)}><Bell size={18} />Enable reminder</button>{profile.remindersEnabled ? <button className="secondary-button" onClick={onDisableReminder}><BellOff size={18} />Turn off</button> : null}</div>
+          <div className="button-row"><button className="primary-button" onClick={() => onSetReminder(draft.reminderTime)}><Bell size={18} />ማስታወሻውን አብራ</button>{profile.remindersEnabled ? <button className="secondary-button" onClick={onDisableReminder}><BellOff size={18} />አጥፋ</button> : null}</div>
         </section>
 
         <section className="settings-section">
-          <div className="settings-section-title"><h2>Install the app</h2><p>Install Selam English for a full-screen app experience and offline lesson access.</p></div>
-          <button className="secondary-button" onClick={install} disabled={!installPrompt}><Download size={18} />{installPrompt ? "Install web app" : "Already installed or unavailable"}</button>
+          <div className="settings-section-title"><h2>መተግበሪያውን ይጫኑ</h2><p>በሙሉ ማያ ገጽ ለመጠቀምና ያለ በይነመረብ ትምህርቶችን ለማግኘት ሰላም እንግሊዝኛን ይጫኑ።</p></div>
+          <button className="secondary-button" onClick={install} disabled={!installPrompt}><Download size={18} />{installPrompt ? "የድር መተግበሪያውን ጫን" : "ተጭኗል ወይም አይገኝም"}</button>
         </section>
 
         <section className="settings-section privacy-section">
-          <div className="settings-section-title"><h2><ShieldCheck size={20} />Privacy</h2><p>Your lesson progress stays on this device. Voice audio streams directly to Gemini during an active conversation and stops when you end it.</p></div>
+          <div className="settings-section-title"><h2><ShieldCheck size={20} />ግላዊነት</h2><p>የትምህርት እድገትዎ በዚህ መሣሪያ ላይ ይቀመጣል። በውይይት ጊዜ የድምፅ መረጃ በቀጥታ ወደ ጄሚኒ ይላካል፤ ልምምዱን ሲጨርሱ ይቆማል።</p></div>
         </section>
 
         <section className="settings-section danger-section">
-          <div className="settings-section-title"><h2>Start over</h2><p>Remove local progress, scores, review words, and preferences from this device.</p></div>
-          <button className="danger-button" onClick={reset}><RotateCcw size={18} />Reset progress</button>
+          <div className="settings-section-title"><h2>እንደገና ይጀምሩ</h2><p>በዚህ መሣሪያ ላይ ያሉ እድገት፣ ውጤቶች፣ የክለሳ ቃላትና ምርጫዎች ይሰረዛሉ።</p></div>
+          <button className="danger-button" onClick={reset}><RotateCcw size={18} />እድገቱን አዲስ አድርግ</button>
         </section>
       </div>
     </div>

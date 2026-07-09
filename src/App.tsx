@@ -36,8 +36,8 @@ export function App() {
   const [loadingLesson, setLoadingLesson] = useState(false);
   const [reminderMessage, setReminderMessage] = useState(
     progress.profile.remindersEnabled
-      ? `Daily reminder set for ${progress.profile.reminderTime}.`
-      : "No reminder is set."
+      ? `የዕለት ማስታወሻው ለ${progress.profile.reminderTime} ተይዟል።`
+      : "ምንም ማስታወሻ አልተያዘም።"
   );
   const [toast, setToast] = useState<ToastState>(null);
 
@@ -68,7 +68,7 @@ export function App() {
 
   async function openWord(word: string) {
     if (!curriculumWordSet.has(word)) {
-      setToast({ type: "error", message: `“${word}” is not in the 5,000-word speaking catalog.` });
+      setToast({ type: "error", message: `“${word}” በ5,000 የመናገር ቃላት ዝርዝር ውስጥ የለም።` });
       return;
     }
     const curated = speakingLessons.find((item) => item.word === word);
@@ -96,12 +96,12 @@ export function App() {
 
   function completeSpeaking(completedLesson: SpeakingLesson) {
     dispatch({ type: "complete-speaking", word: completedLesson.word, minutes: 5 });
-    setToast({ type: "success", message: `${completedLesson.word} added to your review queue.` });
+    setToast({ type: "success", message: `${completedLesson.word} ወደ ክለሳ ዝርዝርዎ ተጨምሯል።` });
   }
 
   function completeReading(completedLesson: ReadingLesson, score: number) {
     dispatch({ type: "complete-reading", lessonId: completedLesson.id, score, minutes: completedLesson.minutes });
-    setToast({ type: "success", message: `Reading saved: ${score} of ${completedLesson.questions.length} correct.` });
+    setToast({ type: "success", message: `የንባብ ውጤቱ ተቀምጧል፤ ከ${completedLesson.questions.length} ውስጥ ${score} ትክክል።` });
   }
 
   async function enableReminder(time: string) {
@@ -118,8 +118,8 @@ export function App() {
   async function disableReminder() {
     await cancelPracticeReminder();
     dispatch({ type: "update-profile", updates: { remindersEnabled: false } });
-    setReminderMessage("Daily reminder is off.");
-    setToast({ type: "success", message: "Daily reminder turned off." });
+    setReminderMessage("የዕለት ማስታወሻው ጠፍቷል።");
+    setToast({ type: "success", message: "የዕለት ማስታወሻው ጠፍቷል።" });
   }
 
   if (!progress.profile.onboardingComplete) {
@@ -181,7 +181,7 @@ export function App() {
           reminderMessage={reminderMessage}
           onSave={(updates) => {
             dispatch({ type: "update-profile", updates });
-            setToast({ type: "success", message: "Settings saved." });
+            setToast({ type: "success", message: "ቅንብሮቹ ተቀምጠዋል።" });
           }}
           onSetReminder={enableReminder}
           onDisableReminder={disableReminder}
@@ -202,7 +202,7 @@ function Toast({ toast, onClose }: { toast: NonNullable<ToastState>; onClose: ()
     <div className={`toast ${toast.type}`} role="status">
       {toast.type === "success" ? <Check size={19} /> : <CircleAlert size={19} />}
       <span>{toast.message}</span>
-      <button onClick={onClose} aria-label="Close message"><X size={17} /></button>
+      <button onClick={onClose} aria-label="መልእክቱን ዝጋ"><X size={17} /></button>
     </div>
   );
 }

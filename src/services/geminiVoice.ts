@@ -111,7 +111,7 @@ export class GeminiVoiceCoach {
 
   async start(context: VoicePracticeContext) {
     this.closed = false;
-    this.callbacks.onStatus("connecting", "Connecting to Gemini voice coach…");
+    this.callbacks.onStatus("connecting", "ከጄሚኒ የድምፅ አሰልጣኝ ጋር በመገናኘት ላይ…");
 
     const permissionStream = await requestMicrophone();
     if (this.closed) {
@@ -129,7 +129,7 @@ export class GeminiVoiceCoach {
       const payload = (await tokenResponse.json().catch(() => null)) as
         | { error?: string }
         | null;
-      throw new Error(payload?.error || "Voice coach could not connect.");
+      throw new Error(payload?.error || "ከድምፅ አሰልጣኙ ጋር መገናኘት አልተቻለም።");
     }
     const token = (await tokenResponse.json()) as { name: string; model: string };
     if (this.closed) return;
@@ -156,15 +156,15 @@ export class GeminiVoiceCoach {
       callbacks: {
         onopen: () => {
           if (!this.closed) {
-            this.callbacks.onStatus("listening", "Listening. Speak in English when you are ready.");
+            this.callbacks.onStatus("listening", "እያዳመጠ ነው። ዝግጁ ሲሆኑ በእንግሊዝኛ ይናገሩ።");
           }
         },
         onmessage: (message) => this.handleMessage(message),
         onerror: () => {
-          if (!this.closed) this.callbacks.onStatus("error", "The voice connection was interrupted.");
+          if (!this.closed) this.callbacks.onStatus("error", "የድምፅ ግንኙነቱ ተቋርጧል።");
         },
         onclose: () => {
-          if (!this.closed) this.callbacks.onStatus("idle", "Voice practice ended.");
+          if (!this.closed) this.callbacks.onStatus("idle", "የድምፅ ልምምዱ ተጠናቋል።");
         }
       }
     });
@@ -199,7 +199,7 @@ export class GeminiVoiceCoach {
     this.outputContext = null;
     this.callbacks.onLevel(0);
     this.callbacks.onTranscript(null);
-    this.callbacks.onStatus("idle", "Voice coach ready.");
+    this.callbacks.onStatus("idle", "የድምፅ አሰልጣኙ ዝግጁ ነው።");
   }
 
   private async startMicrophoneStream() {
@@ -241,7 +241,7 @@ export class GeminiVoiceCoach {
         speaker: "learner",
         text: normalizeTranscript(this.learnerText)
       });
-      this.callbacks.onStatus("thinking", "Gemini is listening to your answer…");
+      this.callbacks.onStatus("thinking", "ጄሚኒ መልስዎን እያዳመጠ ነው…");
     }
 
     const outputText = content.outputTranscription?.text;
@@ -252,7 +252,7 @@ export class GeminiVoiceCoach {
         speaker: "coach",
         text: normalizeTranscript(this.coachText)
       });
-      this.callbacks.onStatus("speaking", "Gemini is responding.");
+      this.callbacks.onStatus("speaking", "ጄሚኒ እየመለሰ ነው።");
     }
 
     for (const part of content.modelTurn?.parts ?? []) {
@@ -271,7 +271,7 @@ export class GeminiVoiceCoach {
       this.learnerText = "";
       this.coachText = "";
       this.callbacks.onTranscript(null);
-      this.callbacks.onStatus("listening", "Your turn. Speak when you are ready.");
+      this.callbacks.onStatus("listening", "የእርስዎ ተራ ነው። ዝግጁ ሲሆኑ ይናገሩ።");
     }
   }
 
@@ -311,30 +311,15 @@ export class GeminiVoiceCoach {
 
 export async function requestMicrophone() {
   if (!navigator.mediaDevices?.getUserMedia) {
-    throw new Error("This browser cannot access a microphone.");
+    throw new Error("ይህ አሳሽ ማይክሮፎን መጠቀም አይችልም።");
   }
   try {
     return await navigator.mediaDevices.getUserMedia({
       audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
     });
   } catch {
-    throw new Error("Allow microphone access to start voice practice.");
+    throw new Error("የድምፅ ልምምድ ለመጀመር የማይክሮፎን ፈቃድ ይስጡ።");
   }
-}
-
-export function speakText(text: string, rate = 0.72) {
-  if (!("speechSynthesis" in window)) return false;
-  window.speechSynthesis.cancel();
-  const utterance = new SpeechSynthesisUtterance(text);
-  utterance.lang = "en-US";
-  utterance.rate = rate;
-  utterance.pitch = 1;
-  const voice = window.speechSynthesis
-    .getVoices()
-    .find((item) => item.lang.startsWith("en-US"));
-  if (voice) utterance.voice = voice;
-  window.speechSynthesis.speak(utterance);
-  return true;
 }
 
 function getStepText(lesson: SpeakingLesson, step: SpeakingStep) {

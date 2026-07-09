@@ -19,7 +19,7 @@ export function allowTrustedOrigin(req: ApiRequest, res: ApiResponse) {
     res.setHeader("Vary", "Origin");
     return true;
   }
-  res.status(403).json({ error: "Origin not allowed." });
+  res.status(403).json({ error: "ከዚህ ምንጭ የሚመጣ ጥያቄ አይፈቀድም።" });
   return false;
 }
 
@@ -49,7 +49,7 @@ export function allowRequest(
   }
   if (bucket.count >= limit) {
     res.setHeader("Retry-After", Math.ceil((bucket.resetAt - now) / 1000));
-    res.status(429).json({ error: "Too many requests. Try again in a few minutes." });
+    res.status(429).json({ error: "ብዙ ጥያቄዎች ተልከዋል። ከጥቂት ደቂቃዎች በኋላ ይሞክሩ።" });
     return false;
   }
   bucket.count += 1;
@@ -59,6 +59,6 @@ export function allowRequest(
 export function requirePost(req: ApiRequest, res: ApiResponse) {
   if (req.method === "POST") return true;
   res.setHeader("Allow", "POST");
-  res.status(405).json({ error: "Method not allowed." });
+  res.status(405).json({ error: "ይህ የጥያቄ ዘዴ አይፈቀድም።" });
   return false;
 }

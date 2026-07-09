@@ -9,9 +9,9 @@ export default defineConfig({
       registerType: "autoUpdate",
       includeAssets: ["favicon.svg"],
       manifest: {
-        name: "Selam English",
-        short_name: "Selam",
-        description: "Voice-first English lessons for Amharic speakers.",
+        name: "ሰላም እንግሊዝኛ",
+        short_name: "ሰላም",
+        description: "ለአማርኛ ተናጋሪዎች በድምፅ የሚመራ የእንግሊዝኛ ትምህርት።",
         theme_color: "#176b39",
         background_color: "#f5f7f5",
         display: "standalone",

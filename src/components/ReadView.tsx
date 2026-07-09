@@ -1,7 +1,8 @@
 import { ArrowLeft, ArrowRight, BookOpen, Check, Volume2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { visualImages } from "../data/curriculum";
-import { speakText } from "../services/geminiVoice";
+import { levelLabel, minutesLabel } from "../services/amharicUi";
+import { speakText } from "../services/edgeTts";
 import type { ReadingLesson } from "../types/learning";
 
 export function ReadView({
@@ -45,13 +46,13 @@ export function ReadView({
   return (
     <div className="read-view">
       <section className="page-heading compact-heading">
-        <div><h1>Reading comprehension</h1><p>በአማርኛ እገዛ ያንብቡ፣ ዋናውን ሐሳብ ይረዱ እና ጥያቄዎችን ይመልሱ።</p></div>
-        <div className="level-indicator"><BookOpen size={18} /><span><strong>{activeLesson.level}</strong><small>{activeLesson.minutes} minute lesson</small></span></div>
+        <div><h1>የንባብ ግንዛቤ</h1><p>በአማርኛ እገዛ ያንብቡ፣ ዋናውን ሐሳብ ይረዱ እና ጥያቄዎችን ይመልሱ።</p></div>
+        <div className="level-indicator"><BookOpen size={18} /><span><strong>{levelLabel(activeLesson.level)}</strong><small>የ{activeLesson.minutes} ደቂቃ ትምህርት</small></span></div>
       </section>
 
       <div className="reading-workspace">
-        <aside className="reading-library" aria-label="Reading lessons">
-          <h2>Reading path</h2>
+        <aside className="reading-library" aria-label="የንባብ ትምህርቶች">
+          <h2>የንባብ መንገድ</h2>
           {lessons.map((lesson) => (
             <button key={lesson.id} className={lesson.id === activeLesson.id ? "active" : ""} onClick={() => onSelect(lesson)}>
               <span>{completedIds.includes(lesson.id) ? <Check size={15} /> : lesson.level[0].toUpperCase()}</span>
@@ -63,12 +64,12 @@ export function ReadView({
         <div className="reading-content">
           <article className="passage-panel">
             <img src={visualImages[activeLesson.visual]} alt={activeLesson.title} />
-            <div className="passage-heading"><div><p>{activeLesson.level} · {activeLesson.minutes} min</p><h2>{activeLesson.title}</h2><span lang="am">{activeLesson.titleAmharic}</span></div><button className="icon-text-button" onClick={() => speakText(activeLesson.passage, voiceRate)}><Volume2 size={19} /> Read aloud</button></div>
+            <div className="passage-heading"><div><p>{levelLabel(activeLesson.level)} · {minutesLabel(activeLesson.minutes)}</p><h2>{activeLesson.title}</h2><span lang="am">{activeLesson.titleAmharic}</span></div><button className="icon-text-button" onClick={() => speakText(activeLesson.passage, voiceRate)}><Volume2 size={19} /> ጮክ ብሎ አንብብ</button></div>
             <p className="passage-text">{activeLesson.passage}</p>
           </article>
 
           <section className="reading-support">
-            <div className="support-heading"><div><h2 lang="am">የንባብ እገዛ</h2><p>Amharic explanation</p></div><button onClick={() => setShowSupport((value) => !value)}>{showSupport ? "Hide" : "Show"}</button></div>
+            <div className="support-heading"><div><h2 lang="am">የንባብ እገዛ</h2><p>ማብራሪያ በአማርኛ</p></div><button onClick={() => setShowSupport((value) => !value)}>{showSupport ? "ደብቅ" : "አሳይ"}</button></div>
             {showSupport ? <p lang="am">{activeLesson.amharicSupport}</p> : null}
             <dl className="glossary">
               {activeLesson.targetWords.map((word) => <div key={word.english}><dt>{word.english}</dt><dd lang="am">{word.amharic}</dd></div>)}
@@ -76,7 +77,7 @@ export function ReadView({
           </section>
 
           <section className="quiz-panel">
-            <div className="section-title-row"><div><p>Check your understanding</p><h2>Questions</h2></div><span>{Object.keys(answers).length} / {activeLesson.questions.length} answered</span></div>
+            <div className="section-title-row"><div><p>ግንዛቤዎን ይፈትሹ</p><h2>ጥያቄዎች</h2></div><span>ከ{activeLesson.questions.length} ውስጥ {Object.keys(answers).length} ተመልሷል</span></div>
             {activeLesson.questions.map((question, index) => (
               <fieldset className="reading-question" key={question.id}>
                 <legend><span>{index + 1}</span><strong>{question.prompt}</strong><small lang="am">{question.promptAmharic}</small></legend>
@@ -92,11 +93,11 @@ export function ReadView({
               </fieldset>
             ))}
             {submitted ? (
-              <div className="quiz-result"><span><strong>{score} / {activeLesson.questions.length}</strong> correct</span><p lang="am">{score === activeLesson.questions.length ? "በጣም ጥሩ። ዋናውን ሐሳብ በትክክል ተረድተዋል።" : "መልሶቹን ይመልከቱና ንባቡን አንድ ጊዜ ደግመው ያንብቡ።"}</p></div>
+              <div className="quiz-result"><span><strong>{score} / {activeLesson.questions.length}</strong> ትክክል</span><p lang="am">{score === activeLesson.questions.length ? "በጣም ጥሩ። ዋናውን ሐሳብ በትክክል ተረድተዋል።" : "መልሶቹን ይመልከቱና ንባቡን አንድ ጊዜ ደግመው ያንብቡ።"}</p></div>
             ) : null}
             <div className="quiz-footer">
-              <button className="secondary-button" disabled={lessonIndex === 0} onClick={() => onSelect(lessons[lessonIndex - 1])}><ArrowLeft size={18} /> Previous</button>
-              {!submitted ? <button className="primary-button" disabled={!allAnswered} onClick={submit}>Check answers <Check size={18} /></button> : <button className="primary-button" disabled={lessonIndex === lessons.length - 1} onClick={() => onSelect(lessons[lessonIndex + 1])}>Next reading <ArrowRight size={18} /></button>}
+              <button className="secondary-button" disabled={lessonIndex === 0} onClick={() => onSelect(lessons[lessonIndex - 1])}><ArrowLeft size={18} /> የቀድሞው</button>
+              {!submitted ? <button className="primary-button" disabled={!allAnswered} onClick={submit}>መልሶችን ፈትሽ <Check size={18} /></button> : <button className="primary-button" disabled={lessonIndex === lessons.length - 1} onClick={() => onSelect(lessons[lessonIndex + 1])}>ቀጣይ ንባብ <ArrowRight size={18} /></button>}
             </div>
           </section>
         </div>

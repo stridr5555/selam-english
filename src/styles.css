@@ -578,9 +578,9 @@ p { margin: 0; }
   .progression-strip span { min-height: 54px; justify-content: center; padding: 7px 4px; font-size: 10px; text-align: center; }
   .progression-strip span { flex-direction: column; gap: 3px; }
   .progression-strip span:nth-child(3) { font-size: 0; }
-  .progression-strip span:nth-child(3)::after { content: "Short"; font-size: 10px; }
+  .progression-strip span:nth-child(3)::after { content: "አጭር"; font-size: 10px; }
   .progression-strip span:nth-child(4) { font-size: 0; }
-  .progression-strip span:nth-child(4)::after { content: "Long"; font-size: 10px; }
+  .progression-strip span:nth-child(4)::after { content: "ረጅም"; font-size: 10px; }
   .lesson-cta { align-items: stretch; flex-direction: column; }
   .lesson-cta .primary-button { width: 100%; }
   .reading-preview-band { grid-template-columns: 88px minmax(0,1fr); min-height: 105px; gap: 12px; }

@@ -11,7 +11,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
 
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
-    res.status(503).json({ error: "Voice practice is not configured." });
+    res.status(503).json({ error: "የድምፅ ልምምዱ አልተዋቀረም።" });
     return;
   }
 
@@ -35,6 +35,6 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     res.status(200).json({ name: token.name, model: LIVE_MODEL });
   } catch (error) {
     console.error("Gemini token creation failed", error);
-    res.status(502).json({ error: "Gemini voice service is unavailable." });
+    res.status(502).json({ error: "የጄሚኒ ድምፅ አገልግሎት አሁን አይገኝም።" });
   }
 }
