@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { englishToAmharicPronunciation } from "../src/services/amharicPronunciation";
 import {
   appendTranscriptChunk,
+  buildGeminiKickoffInstruction,
   buildGeminiSystemInstruction,
   normalizeTranscript
 } from "../src/services/geminiVoice";
@@ -45,17 +46,22 @@ describe("Gemini transcript assembly", () => {
 
 describe("voice lesson structure", () => {
   it("locks the coach to the current water target and sequence", () => {
-    const prompt = buildGeminiSystemInstruction({
+    const context = {
       learnerName: "Mimi",
       learnerLevel: "beginner",
       lesson: waterLesson,
       step: "short",
       reviewWords: []
-    });
+    } as const;
+    const prompt = buildGeminiSystemInstruction(context);
     expect(prompt).toContain('exact target "I need water."');
     expect(prompt).toContain("3. USE IT");
     expect(prompt).toContain("Never ask the learner to repeat a new random phrase");
     expect(prompt).toContain("groceries");
+    expect(buildGeminiKickoffInstruction(context)).toContain(
+      'brief Amharic instruction about the At a cafe scenario'
+    );
+    expect(buildGeminiKickoffInstruction(context)).toContain('say exactly "I need water." once');
   });
 });
 

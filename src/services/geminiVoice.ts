@@ -78,6 +78,17 @@ export function normalizeTranscript(text: string) {
     .trim();
 }
 
+export function buildGeminiKickoffInstruction(context: VoicePracticeContext) {
+  const currentTarget = getStepText(context.lesson, context.step);
+  return [
+    "Start MODEL now.",
+    `First give one brief Amharic instruction about the ${context.lesson.topic} scenario and ask the learner to listen.`,
+    `Then say exactly \"${currentTarget}\" once.`,
+    "Ask in Amharic for one exact repetition, then wait.",
+    "Do not introduce any other English sentence."
+  ].join(" ");
+}
+
 export class GeminiVoiceCoach {
   private callbacks: VoiceCoachCallbacks;
   private session: Session | null = null;
@@ -163,7 +174,7 @@ export class GeminiVoiceCoach {
     }
     await this.startMicrophoneStream();
     this.session.sendClientContent({
-      turns: `Start MODEL now. Say the exact English target \"${getStepText(context.lesson, context.step)}\" once, then wait for the learner.`,
+      turns: buildGeminiKickoffInstruction(context),
       turnComplete: true
     });
   }
