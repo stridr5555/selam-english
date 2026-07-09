@@ -2,6 +2,8 @@
 
 Selam English is a voice-first English learning app for Amharic speakers. It combines a 5,000-word spoken-fluency curriculum with a separate reading-comprehension track, gradual sentence building, Amharic explanations, pronunciation playback, review practice, and Gemini Live voice conversations.
 
+Production: [selam-english-amharic.vercel.app](https://selam-english-amharic.vercel.app)
+
 ## Product Features
 
 - A 5,000-word speaking catalog ordered by conversational frequency.
@@ -56,7 +58,7 @@ Security headers, native-origin CORS, request validation, rate limiting, and cac
 For native builds, set the production API origin before syncing so the bundled WebView can reach the Vercel Functions:
 
 ```bash
-set VITE_API_BASE_URL=https://your-production-domain.example
+set VITE_API_BASE_URL=https://selam-english-amharic.vercel.app
 npm run cap:sync
 ```
 
