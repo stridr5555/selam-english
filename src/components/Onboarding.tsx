@@ -1,0 +1,64 @@
+import { ArrowRight, BookOpen, Mic2, Volume2 } from "lucide-react";
+import { useState } from "react";
+import type { Level } from "../types/learning";
+
+export function Onboarding({
+  onComplete
+}: {
+  onComplete: (name: string, level: Level, goal: number) => void;
+}) {
+  const [step, setStep] = useState<1 | 2>(1);
+  const [name, setName] = useState("");
+  const [level, setLevel] = useState<Level>("beginner");
+  const [goal, setGoal] = useState(15);
+
+  return (
+    <div className="onboarding-page">
+      <div className="onboarding-brand"><span><Volume2 size={22} /></span> Selam English</div>
+      <section className="onboarding-panel" aria-labelledby="welcome-title">
+        {step === 1 ? (
+          <>
+            <div className="onboarding-icons" aria-hidden="true"><Mic2 /><BookOpen /></div>
+            <p className="amharic-kicker">እንኳን ደህና መጡ</p>
+            <h1 id="welcome-title">English you can use every day</h1>
+            <p>በአማርኛ ይማሩ። በእንግሊዝኛ ይናገሩ፣ ያዳምጡ እና ያንብቡ።</p>
+            <label>
+              What should we call you?
+              <input value={name} onChange={(event) => setName(event.target.value)} placeholder="Your name" autoFocus />
+            </label>
+            <button className="primary-button wide" onClick={() => setStep(2)} disabled={!name.trim()}>
+              Continue <ArrowRight size={18} />
+            </button>
+          </>
+        ) : (
+          <>
+            <p className="amharic-kicker">ትምህርቱን እናስተካክል</p>
+            <h1 id="welcome-title">Choose your starting point</h1>
+            <fieldset className="choice-list">
+              <legend>How much English can you use now?</legend>
+              {[
+                ["beginner", "Beginner", "I know a few words and phrases."],
+                ["intermediate", "Intermediate", "I can handle short conversations."],
+                ["advanced", "Advanced", "I want clearer, more natural English."]
+              ].map(([value, label, description]) => (
+                <label key={value} className={level === value ? "selected" : ""}>
+                  <input type="radio" name="level" value={value} checked={level === value} onChange={() => setLevel(value as Level)} />
+                  <span><strong>{label}</strong><small>{description}</small></span>
+                </label>
+              ))}
+            </fieldset>
+            <fieldset className="goal-options">
+              <legend>Daily goal</legend>
+              {[10, 15, 20].map((minutes) => (
+                <button key={minutes} className={goal === minutes ? "selected" : ""} onClick={() => setGoal(minutes)}>{minutes} min</button>
+              ))}
+            </fieldset>
+            <button className="primary-button wide" onClick={() => onComplete(name, level, goal)}>
+              Start learning <ArrowRight size={18} />
+            </button>
+          </>
+        )}
+      </section>
+    </div>
+  );
+}

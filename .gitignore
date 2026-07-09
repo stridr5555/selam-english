@@ -1,0 +1,14 @@
+node_modules/
+dist/
+.vercel/
+.env
+.env.local
+*.log
+*.tsbuildinfo
+/capacitor.config.js
+/capacitor.config.d.ts
+/vite.config.js
+/vite.config.d.ts
+render-*.png
+qa-*.*
+spoken-source.txt
