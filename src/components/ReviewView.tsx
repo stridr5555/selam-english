@@ -2,24 +2,29 @@ import { ArrowRight, Check, RotateCcw, Volume2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { speakingLessons } from "../data/curriculum";
 import { speakText } from "../services/geminiVoice";
+import { getCachedLessonForReview } from "../services/lessonGenerator";
+import type { Level } from "../types/learning";
 
 export function ReviewView({
   queue,
   mastery,
   voiceRate,
+  level,
   onRate,
   onOpenSpeaking
 }: {
   queue: string[];
   mastery: Record<string, number>;
   voiceRate: number;
+  level: Level;
   onRate: (word: string, rating: number) => void;
   onOpenSpeaking: (word: string) => void;
 }) {
   const [index, setIndex] = useState(0);
   const [revealed, setRevealed] = useState(false);
   const word = queue[index];
-  const lesson = speakingLessons.find((item) => item.word === word);
+  const lesson = speakingLessons.find((item) => item.word === word)
+    ?? (word ? getCachedLessonForReview(word, level) : null);
 
   useEffect(() => {
     if (index >= queue.length) setIndex(Math.max(0, queue.length - 1));

@@ -3,6 +3,7 @@ import type { Level, SpeakingLesson } from "../types/learning";
 import { apiUrl } from "./api";
 
 const lessonCache = new Map<string, SpeakingLesson>();
+const levels: Level[] = ["beginner", "intermediate", "advanced"];
 
 export async function getGeneratedLesson(
   word: string,
@@ -33,6 +34,19 @@ export async function getGeneratedLesson(
   } catch {
     return createFallbackLesson(word, rank);
   }
+}
+
+export function getCachedLessonForReview(word: string, preferredLevel: Level) {
+  const orderedLevels = [preferredLevel, ...levels.filter((level) => level !== preferredLevel)];
+  for (const level of orderedLevels) {
+    const cacheKey = `${word}:${level}`;
+    const lesson = lessonCache.get(cacheKey) ?? readLocal(cacheKey);
+    if (lesson) {
+      lessonCache.set(cacheKey, lesson);
+      return lesson;
+    }
+  }
+  return null;
 }
 
 function readLocal(cacheKey: string) {

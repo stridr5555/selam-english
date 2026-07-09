@@ -117,6 +117,7 @@ export function SpeakView({
         reviewWords
       });
     } catch (error) {
+      if (coachRef.current !== coach) return;
       setVoiceStatus("error");
       setVoiceMessage(error instanceof Error ? error.message : "Voice practice could not start.");
       coach.stop();
@@ -178,9 +179,9 @@ export function SpeakView({
               {bars.map((height, index) => <i key={index} style={{ height: `${Math.max(height * (voiceLevel || 0.32), 3)}px` }} />)}
             </div>
             <div className="voice-actions">
-              <button className={`voice-button ${isVoiceActive ? "stop" : ""}`} onClick={toggleVoice} disabled={voiceStatus === "connecting"}>
+              <button className={`voice-button ${isVoiceActive ? "stop" : ""}`} onClick={toggleVoice}>
                 {voiceStatus === "connecting" ? <LoaderCircle className="spin" size={22} /> : isVoiceActive ? <CircleStop size={22} /> : <Mic2 size={22} />}
-                {voiceStatus === "connecting" ? "Connecting" : isVoiceActive ? "End practice" : "Speak with Gemini"}
+                {voiceStatus === "connecting" ? "Cancel connection" : isVoiceActive ? "End practice" : "Speak with Gemini"}
               </button>
               <button className="square-icon-button" onClick={() => speakText(currentText, 1)} aria-label="Replay at normal speed" title="Replay at normal speed"><RotateCcw size={20} /></button>
             </div>

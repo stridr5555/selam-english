@@ -162,6 +162,7 @@ export function App() {
           queue={reviewWords}
           mastery={progress.mastery}
           voiceRate={progress.profile.voiceRate}
+          level={progress.profile.level}
           onRate={(word, rating) => dispatch({ type: "rate-word", word, rating })}
           onOpenSpeaking={openWord}
         />

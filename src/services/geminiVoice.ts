@@ -72,6 +72,10 @@ export class GeminiVoiceCoach {
     this.callbacks.onStatus("connecting", "Connecting to Gemini voice coach…");
 
     const permissionStream = await requestMicrophone();
+    if (this.closed) {
+      permissionStream.getTracks().forEach((track) => track.stop());
+      return;
+    }
     this.stream = permissionStream;
 
     const tokenResponse = await fetch(apiUrl("/api/gemini-token"), {
@@ -86,6 +90,7 @@ export class GeminiVoiceCoach {
       throw new Error(payload?.error || "Voice coach could not connect.");
     }
     const token = (await tokenResponse.json()) as { name: string; model: string };
+    if (this.closed) return;
 
     const { GoogleGenAI, Modality } = await import("@google/genai");
     const ai = new GoogleGenAI({ apiKey: token.name, httpOptions: { apiVersion: "v1alpha" } });
@@ -122,6 +127,11 @@ export class GeminiVoiceCoach {
       }
     });
 
+    if (this.closed) {
+      this.session.close();
+      this.session = null;
+      return;
+    }
     await this.startMicrophoneStream();
     this.session.sendClientContent({
       turns: "Start the practice now with one short Amharic instruction, then say the English target once.",
