@@ -74,6 +74,8 @@ export function normalizeTranscript(text: string) {
   return text
     .replace(/\s+([,.;:!?…])/g, "$1")
     .replace(/([([{“‘\"])\s+/g, "$1")
+    .replace(/([\u1200-\u137f])([\"“]?[A-Za-z])/g, "$1 $2")
+    .replace(/([A-Za-z][\"”']?)([\u1200-\u137f])/g, "$1 $2")
     .replace(/\s+/g, " ")
     .trim();
 }

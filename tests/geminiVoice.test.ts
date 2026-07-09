@@ -42,6 +42,13 @@ describe("Gemini transcript assembly", () => {
     expect(appendTranscriptChunk("I need water", ".")).toBe("I need water.");
     expect(normalizeTranscript("  I   need water .  ")).toBe("I need water.");
   });
+
+  it("separates English and Amharic when Gemini omits script-boundary spaces", () => {
+    expect(normalizeTranscript('አሁን ያዳምጡ።"I need water."')).toBe(
+      'አሁን ያዳምጡ። "I need water."'
+    );
+    expect(normalizeTranscript('"water"አሁን ይድገሙ።')).toBe('"water" አሁን ይድገሙ።');
+  });
 });
 
 describe("voice lesson structure", () => {
