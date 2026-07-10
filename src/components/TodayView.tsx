@@ -72,7 +72,7 @@ export function TodayView({
             ))}
           </div>
           <div className="lesson-cta">
-            <span><Headphones size={20} /> ያዳምጡ፣ ይድገሙ፣ ከዚያም ቃሉን ከጄሚኒ ጋር ይጠቀሙ።</span>
+            <span><Headphones size={20} /> ትርጉሙን ይረዱ፣ አጠቃቀሙን ያስተውሉ፣ በራስዎ ቃል ይመልሱ፣ ከዚያም ከጄሚኒ ጋር ይወያዩ።</span>
             <button className="primary-button" onClick={() => onNavigate("speak")}>{speakingDone ? "እንደገና ይለማመዱ" : "መናገር ይጀምሩ"}<ArrowRight size={18} /></button>
           </div>
         </section>
