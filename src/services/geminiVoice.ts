@@ -34,29 +34,49 @@ export type VoicePracticeContext = {
 export function buildGeminiSystemInstruction(context: VoicePracticeContext) {
   const currentTarget = getStepText(context.lesson, context.step);
   return [
-    "You are Selam English, a concise voice coach for an adult Amharic speaker.",
-    `This session is locked to the topic \"${context.lesson.topic}\" and the exact target \"${currentTarget}\".`,
+    "You are Selam English, an adaptive voice teacher for an adult Amharic speaker.",
+    `This session is locked to the topic \"${context.lesson.topic}\" and the learning target \"${currentTarget}\".`,
     `The scenario is: ${context.lesson.conversationPrompt}`,
-    "Use clear Amharic for instruction and feedback. Use English only for the lesson target or a question that directly practices this scenario.",
+    "Use clear Amharic for teaching and feedback. Use short English examples only when they directly support the target and scenario.",
     "Do not introduce shopping, groceries, travel, or any unrelated example unless it is the stated lesson topic.",
     "Keep Amharic and English as separate, complete sentences with normal spacing and punctuation.",
-    "Ask one question, then wait. Keep each response under 35 words.",
+    "Ask one meaningful question, then wait. Keep each response under 45 words.",
+    "Respond to the learner's actual answer. Do not deliver a memorized script or repeat the same instruction.",
+    "Do not ask for exact repetition unless the learner has a specific pronunciation problem that needs one focused retry.",
+    "Let the learner make choices, change details, and express a real preference or need.",
+    "If the learner is stuck, offer two short choices or a sentence starter. Accept an Amharic answer, then help them express it in English.",
     "Correct only the most useful pronunciation or grammar issue in each turn.",
     "When correcting pronunciation, give a simple mouth or tongue instruction in Amharic, then model the English word once.",
-    "Follow this lesson sequence and do not skip or restart stages:",
-    `1. MODEL: Give one brief Amharic instruction, say exactly \"${currentTarget}\" once, and ask the learner to repeat it. Use no other English sentence.`,
-    `2. REPEAT: Evaluate the learner's attempt. Give one correction in Amharic if needed, model \"${currentTarget}\" once, and ask for one final repetition.`,
-    `3. USE IT: Ask one simple role-play question tied to \"${context.lesson.topic}\" that the learner can answer with \"${currentTarget}\".`,
-    "4. CONVERSATION: Continue the same role-play for at most two short exchanges, then give one specific Amharic completion message.",
-    "Never ask the learner to repeat a new random phrase. Never replace the current target with another sentence.",
+    "Move through this teaching cycle at the learner's pace without announcing the stage names:",
+    "1. UNDERSTAND: Explain the meaning and useful situation in Amharic. Give one natural English example. Ask a context or meaning-check question, not a repetition request.",
+    "2. NOTICE: Teach one useful feature of the target. Ask the learner to choose, complete, sort, or change one meaningful part.",
+    "3. CREATE: Ask a personal question that requires the learner to adapt the target to their own life, preference, or need.",
+    "4. CONVERSATION: Use the same scenario for two to four natural exchanges. React to the learner's details instead of forcing a fixed answer.",
+    "5. FEEDBACK: Name one thing the learner did well and one next improvement in Amharic. Finish with a useful follow-up question or a clear completion message.",
+    buildStageTeachingPlan(context),
+    "Never replace the target with an unrelated sentence. Related variations are allowed only when they teach how the target works.",
     `Learner: ${context.learnerName || "Learner"}. Level: ${context.learnerLevel}.`,
     `Target word: ${context.lesson.word}. Target phrase: ${context.lesson.phrase}.`,
     `Target short sentence: ${context.lesson.shortSentence}`,
     `Target long sentence: ${context.lesson.longSentence}`,
-    `Current stage: ${context.step}. Current exact target: ${currentTarget}.`,
+    `Current curriculum stage: ${context.step}. Current learning target: ${currentTarget}.`,
     `Review words when natural: ${context.reviewWords.slice(0, 4).join(", ") || "none"}.`,
-    "Start at MODEL now."
+    "Start at UNDERSTAND now."
   ].join("\n");
+}
+
+export function buildStageTeachingPlan(context: VoicePracticeContext) {
+  const lesson = context.lesson;
+  if (context.step === "word") {
+    return `WORD LESSON: Teach what \"${lesson.word}\" means, contrast it with one easy non-example, show one common combination, then help the learner use it for a real need in the scenario.`;
+  }
+  if (context.step === "phrase") {
+    return `PHRASE LESSON: Teach \"${lesson.phrase}\" as one useful chunk. Show how the word \"${lesson.word}\" works inside it, then let the learner substitute one detail before using the phrase in the scenario.`;
+  }
+  if (context.step === "short") {
+    return `SHORT-SENTENCE LESSON: Teach the pattern in \"${lesson.shortSentence}\" and its connection to \"${lesson.phrase}\". Let the learner change one meaningful part, then answer a personal question with the pattern.`;
+  }
+  return `LONG-SENTENCE LESSON: Teach the thought groups, connector or polite intent in \"${lesson.longSentence}\". Build from \"${lesson.shortSentence}\", let the learner personalize one detail, then use the full idea naturally in the scenario.`;
 }
 
 export function appendTranscriptChunk(existing: string, chunk: string) {
@@ -83,11 +103,11 @@ export function normalizeTranscript(text: string) {
 export function buildGeminiKickoffInstruction(context: VoicePracticeContext) {
   const currentTarget = getStepText(context.lesson, context.step);
   return [
-    "Start MODEL now.",
-    `First give one brief Amharic instruction about the ${context.lesson.topic} scenario and ask the learner to listen.`,
-    `Then say exactly \"${currentTarget}\" once.`,
-    "Ask in Amharic for one exact repetition, then wait.",
-    "Do not introduce any other English sentence."
+    "Start UNDERSTAND now.",
+    `In Amharic, explain what \"${currentTarget}\" means and when it is useful in the ${context.lesson.topic} scenario.`,
+    `Use \"${currentTarget}\" once in a natural English example.`,
+    "Then ask one simple context or meaning-check question and wait.",
+    "Do not ask the learner to repeat the target."
   ].join(" ");
 }
 
@@ -148,7 +168,7 @@ export class GeminiVoiceCoach {
         systemInstruction: instruction,
         inputAudioTranscription: {},
         outputAudioTranscription: {},
-        temperature: 0.45,
+        temperature: 0.6,
         speechConfig: {
           voiceConfig: { prebuiltVoiceConfig: { voiceName: "Kore" } }
         }

@@ -3,6 +3,7 @@ import { englishToAmharicPronunciation } from "../src/services/amharicPronunciat
 import {
   appendTranscriptChunk,
   buildGeminiKickoffInstruction,
+  buildStageTeachingPlan,
   buildGeminiSystemInstruction,
   normalizeTranscript
 } from "../src/services/geminiVoice";
@@ -52,7 +53,7 @@ describe("Gemini transcript assembly", () => {
 });
 
 describe("voice lesson structure", () => {
-  it("locks the coach to the current water target and sequence", () => {
+  it("locks the coach to an adaptive water lesson cycle", () => {
     const context = {
       learnerName: "Mimi",
       learnerLevel: "beginner",
@@ -61,14 +62,28 @@ describe("voice lesson structure", () => {
       reviewWords: []
     } as const;
     const prompt = buildGeminiSystemInstruction(context);
-    expect(prompt).toContain('exact target "I need water."');
-    expect(prompt).toContain("3. USE IT");
-    expect(prompt).toContain("Never ask the learner to repeat a new random phrase");
+    expect(prompt).toContain('learning target "I need water."');
+    expect(prompt).toContain("3. CREATE");
+    expect(prompt).toContain("Do not ask for exact repetition");
+    expect(prompt).toContain("Respond to the learner's actual answer");
     expect(prompt).toContain("groceries");
-    expect(buildGeminiKickoffInstruction(context)).toContain(
-      'brief Amharic instruction about the At a cafe scenario'
-    );
-    expect(buildGeminiKickoffInstruction(context)).toContain('say exactly "I need water." once');
+    expect(buildGeminiKickoffInstruction(context)).toContain('explain what "I need water." means');
+    expect(buildGeminiKickoffInstruction(context)).toContain("Do not ask the learner to repeat");
+    expect(buildStageTeachingPlan(context)).toContain("SHORT-SENTENCE LESSON");
+    expect(buildStageTeachingPlan(context)).toContain("change one meaningful part");
+  });
+
+  it("uses different teaching methods for every curriculum stage", () => {
+    const base = {
+      learnerName: "Mimi",
+      learnerLevel: "beginner",
+      lesson: waterLesson,
+      reviewWords: []
+    } as const;
+    expect(buildStageTeachingPlan({ ...base, step: "word" })).toContain("non-example");
+    expect(buildStageTeachingPlan({ ...base, step: "phrase" })).toContain("substitute one detail");
+    expect(buildStageTeachingPlan({ ...base, step: "short" })).toContain("personal question");
+    expect(buildStageTeachingPlan({ ...base, step: "long" })).toContain("thought groups");
   });
 });
 

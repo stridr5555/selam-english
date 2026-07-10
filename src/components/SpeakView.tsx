@@ -64,9 +64,8 @@ export function SpeakView({
   const currentText = getStepText(lesson, step);
   const targetPronunciation = englishToAmharicPronunciation(currentText);
   const isVoiceActive = ["connecting", "listening", "thinking", "speaking"].includes(voiceStatus);
-  const coachTurnCount = turns.filter((turn) => turn.speaker === "coach").length;
   const learnerTurnCount = turns.filter((turn) => turn.speaker === "learner").length;
-  const voicePhase = coachTurnCount === 0 ? 0 : learnerTurnCount === 0 ? 1 : learnerTurnCount === 1 ? 2 : 3;
+  const voicePhase = learnerTurnCount === 0 ? 0 : learnerTurnCount === 1 ? 1 : learnerTurnCount === 2 ? 2 : 3;
 
   useEffect(() => {
     setStep("word");
@@ -188,14 +187,14 @@ export function SpeakView({
 
         <section className="practice-panel" aria-labelledby="practice-heading">
           <div className="practice-header">
-            <div><p>ያዳምጡና ይድገሙ</p><h2 id="practice-heading">{currentText}</h2></div>
+            <div><p>ይረዱና ይጠቀሙ</p><h2 id="practice-heading">{currentText}</h2></div>
             <button className="replay-button" onClick={() => speakText(currentText, profile.voiceRate)}><Volume2 size={20} /><span>ቀስ ብሎ አጫውት</span></button>
           </div>
 
           <div className={`voice-coach ${voiceStatus}`}>
             <div className="coach-title"><span><Headphones size={20} /></span><div><strong>ጄሚኒ የድምፅ አሰልጣኝ</strong><small>{voiceMessage}</small></div><i className="connection-dot" /></div>
             <ol className="conversation-stages" aria-label="የድምፅ ትምህርት ቅደም ተከተል">
-              {["ያዳምጡ", "ይድገሙ", "ይጠቀሙ", "ይወያዩ"].map((label, index) => (
+              {["ይረዱ", "ያስተውሉ", "ይመልሱ", "ይወያዩ"].map((label, index) => (
                 <li key={label} className={index === voicePhase ? "active" : index < voicePhase ? "done" : ""}>
                   <span>{index < voicePhase ? <Check size={12} /> : index + 1}</span>{label}
                 </li>
